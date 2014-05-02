@@ -15,7 +15,7 @@ public class SeriesParallelGenerator {
 	public static void main(String args[]) {
 		SeriesParallelGenerator generator = new SeriesParallelGenerator();
 		Random rand = new Random();
-		System.out.println(generator.asm(2, 3, 0.5, rand));
+		System.out.println(generator.asm(2, 4, 0.6, rand));
 	}
 	
 	
@@ -44,8 +44,10 @@ public class SeriesParallelGenerator {
 			if( randVal < nonTermProb )
 				builder.append(par(minStatements, maxStatements, nonTermProb-WEAKEN, rand));
 			//Generate a simple statement
-			else
+			else {
 				builder.append(" a" + STMTIDX + " ");
+				STMTIDX++;
+			}
 		}
 		return " seq " + builder.toString() + " endseq ";
 	}
@@ -61,51 +63,19 @@ public class SeriesParallelGenerator {
 			if( randVal < nonTermProb )
 				builder.append(seq(minStatements, maxStatements, nonTermProb-WEAKEN, rand));
 			//Generate a simple statement
-			else
+			else {
 				builder.append(" a" + STMTIDX + " ");
+				STMTIDX++;
+			}
 		}
 		return " par " + builder.toString() + " endpar ";
 	}
-	
-	
-	/*
-	private String genGraph(int steps, int minStatements, int maxStatements) {
-		Random rand = new Random();
-		StringBuilder builder = new StringBuilder();
-		Stack stack = new Stack();
-		int indent = 0;
-		int actId = 0;
-		int dice = -1;
-		boolean inseq = false;
-		dice = randInt(rand, 1,2);
-		//Top construct is either seq (1) or par (2)
-		if( dice == 1 ) {
-			inseq = true;
-			builder.append(genIndent(indent) + "seq");
-			stack.push("endseq");
-		}
-		//Proceed the generation for the rest of the steps
-		for(int i = 0; i < steps-1; i++) {
-			dice = randInt(rand, 1,2);
-		}
-		return builder.toString();
-	}
-	*/
 	
 	
 	public static int randInt(Random rand, int min, int max) {
 	    int randomNum = rand.nextInt((max - min) + 1) + min;
 	    return randomNum;
 	}
-	
-	/*
-	private String genIndent(int indent) {
-		StringBuilder builder = new StringBuilder();
-		for(int i = 0; i < indent; i++)
-			builder.append("\t");
-		return builder.toString();
-	}
-	*/
 	
 	
 }
