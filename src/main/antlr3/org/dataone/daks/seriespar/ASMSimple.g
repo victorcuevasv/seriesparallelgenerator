@@ -1,6 +1,6 @@
 /*
-   This grammar is used to generate a lexer and a parser to generate an abstract syntax tree
-   of an ASM represented as a series-parallel graph.
+   This grammar is used to generate a lexer and a parser to generate an
+   abstract syntax tree of an ASM represented as a series-parallel graph.
    The tree is to be further processed by a walker.
 */
 
@@ -13,7 +13,8 @@ options {
 
 //Tokens used to give structure to the AST
 tokens {
-	ASM; BLOCK; SEQ='seq'; ENDSEQ='endseq'; SEQBLOCK; PAR='par'; ENDPAR='endpar'; PARBLOCK;
+	ASM; BLOCK; SEQ='seq'; ENDSEQ='endseq'; SEQBLOCK; PAR='par'; 
+        ENDPAR='endpar'; PARBLOCK;
 }
 
 // applies only to the parser:
@@ -29,9 +30,9 @@ asm
 	
 
 rule
-	:	ID					-> ^(ID)
-	|	PAR rule+ ENDPAR			-> ^(PARBLOCK rule+)
-	|	SEQ rule+ ENDSEQ			-> ^(SEQBLOCK rule+)
+	:	ID				-> ^(ID)
+	|	PAR rule+ ENDPAR		-> ^(PARBLOCK rule+)
+	|	SEQ rule+ ENDSEQ		-> ^(SEQBLOCK rule+)
 	;
 	
 	
