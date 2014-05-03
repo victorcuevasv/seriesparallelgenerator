@@ -1,5 +1,5 @@
 
-package org.dataone.daks.wfqos;
+package org.dataone.daks.seriespar;
 
 import java.util.List;
 import java.util.Hashtable;
