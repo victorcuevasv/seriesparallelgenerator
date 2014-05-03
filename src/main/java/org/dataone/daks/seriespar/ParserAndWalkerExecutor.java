@@ -50,6 +50,7 @@ public class ParserAndWalkerExecutor {
         nodes.setTokenStream(tokens);
         //ASMSimpleGraph walker = new ASMSimpleGraph(nodes);
         ASMSimpleGraphQoS walker = new ASMSimpleGraphQoS(nodes);
+        walker.catalogFile = "catalogJSON.txt";
         //Execute the walker beginning at the query rule
         try {
 			walker.asm();

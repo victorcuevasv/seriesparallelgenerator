@@ -10,7 +10,6 @@ tree grammar ASMSimpleGraph;
 options {
 	tokenVocab=ASMSimple;
 	ASTLabelType=CommonTree;
-	//backtrack=true;
 }
 
 
@@ -35,7 +34,7 @@ asm
 rule returns [WFComponent ruleWFC]
 	:	^(id=ID{$ruleWFC = new WFComponent($id.text, $id.text);}) 
 	|	^(PARBLOCK{$ruleWFC = new WFComponent(); String parOpenNode = "par" + parIndex; String parCloseNode = "endpar" + parIndex; parIndex++; $ruleWFC.start = parOpenNode; $ruleWFC.end = parCloseNode;} (r=rule{astToDigraph.linkNodes($ruleWFC.start, $r.ruleWFC.start); astToDigraph.linkNodes($r.ruleWFC.end, $ruleWFC.end);})+)
-	|	^(SEQBLOCK{$ruleWFC = new WFComponent();} (r=rule{if($ruleWFC.start == null) $ruleWFC.start=$r.ruleWFC.start; else astToDigraph.linkNodes($ruleWFC.end, $r.ruleWFC.start);  $ruleWFC.end=$r.ruleWFC.end;})+)
+	|	^(SEQBLOCK{$ruleWFC = new WFComponent();} (r=rule{if($ruleWFC.start == null) $ruleWFC.start=$r.ruleWFC.start; else astToDigraph.linkNodes($ruleWFC.end, $r.ruleWFC.start); $ruleWFC.end=$r.ruleWFC.end;})+)
 	;
 	
         
