@@ -60,7 +60,12 @@ public class ParserAndWalkerExecutor {
 			graph.toDotFile("out.dot");
 			WFComponentQoS topComponent = walker.topComponent;
 			System.out.println(topComponent.getQoSMetrics());
-		} catch (RecognitionException e) {
+			
+			ASMSimpleInterpreter interpreter = new ASMSimpleInterpreter();
+			interpreter.init(inputStr);
+			
+		}
+        catch (RecognitionException e) {
 			e.printStackTrace();
 		}
 	}
