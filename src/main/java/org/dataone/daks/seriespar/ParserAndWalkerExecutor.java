@@ -61,8 +61,10 @@ public class ParserAndWalkerExecutor {
 			WFComponentQoS topComponent = walker.topComponent;
 			System.out.println(topComponent.getQoSMetrics());
 			
-			ASMSimpleInterpreter interpreter = new ASMSimpleInterpreter();
-			interpreter.init(inputStr);
+			ASMSimpleSimulator simulator = new ASMSimpleSimulator();
+			simulator.init(inputStr);
+			
+			simulator.getDigraph().toDotFile("trace.dot");
 			
 		}
         catch (RecognitionException e) {
