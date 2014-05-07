@@ -41,12 +41,34 @@ public class ASMSimpleSimulator {
     protected ASMSimpleParser parser;
     protected Hashtable<String, Boolean> failed;
     protected Digraph digraph;
+    protected List<String> asmInProcesses;
+    protected Hashtable<String, Integer> asmInProcessesNumInputs;
     protected double failureProb;
     protected Random rand;
+    protected double minTime;
+    protected double maxTime;
+    protected double minCost;
+    protected double maxCost;
+    protected Hashtable<String, QoSMetrics> qosHT;
+    
+    
+    public ASMSimpleSimulator() {
+    	this.rand = new Random();
+    	this.failureProb = randDouble(this.rand, 0, 0.05);
+    	this.asmInProcessesNumInputs = null;
+    }
+    
+    
+    public ASMSimpleSimulator(double minTime, double maxTime, double minCost, double maxCost) {
+    	this();
+    	this.minTime = minTime;
+    	this.maxTime = maxTime;
+    	this.minCost = minCost;
+    	this.maxCost = maxCost;
+    }
     
 
     public void init(String inputStr) throws RecognitionException {
-        
         this.lexer = new ASMSimpleLexer(new ANTLRStringStream(inputStr));
         this.tokens = new TokenRewriteStream(lexer);
         this.parser = new ASMSimpleParser(tokens);
@@ -55,18 +77,30 @@ public class ASMSimpleSimulator {
             this.root = (Tree)result.getTree();
             //System.out.println("tree: " + root.toStringTree());
             this.failed = new Hashtable<String, Boolean>();
-            this.rand = new Random();
-            this.failureProb = randDouble(this.rand, 0, 0.1);
             this.digraph = new Digraph();
-            List<String> outputs = this.exec(root.getChild(0).getChild(0), new ArrayList<String>());
-            for(int i = 0; i < outputs.size(); i++)
-            	System.out.println(outputs.get(i));
+            this.qosHT = new Hashtable<String, QoSMetrics>();
+            this.asmInProcesses = new ArrayList<String>();
         }
+    }
+    
+    
+    public void run() {
+    	List<String> outputs = this.exec(root.getChild(0).getChild(0), new ArrayList<String>());
+    	if( this.asmInProcessesNumInputs == null )
+    		this.createAsmInProcessesNumInputs(1, 2);
+    	this.addAsmInputs();
+        //for(int i = 0; i < outputs.size(); i++)
+        	//System.out.println(outputs.get(i));
     }
     
     
     public Digraph getDigraph() {
     	return this.digraph;
+    }
+    
+    
+    public Hashtable<String, QoSMetrics> getQoSHT() {
+    	return this.qosHT;
     }
     
     
@@ -119,6 +153,10 @@ public class ASMSimpleSimulator {
     
     
     public List<String> id(Tree t, List<String> inputs) {
+    	//Check if the process does not have any inputs, i.e., it is an IN process
+    	if( inputs.size() == 0 )
+    		this.asmInProcesses.add(t.getText());
+    	//Create list with output
     	List<String> list = new ArrayList<String>();
     	list.add(t.getText() + "_out");
     	//Simulate possible failure
@@ -126,7 +164,15 @@ public class ASMSimpleSimulator {
     	boolean failure = false;
     	if( val < this.failureProb )
     		failure = true;
-    	System.out.println(t.getText() + " used: " + listAsString(inputs) + " generated: " + t.getText() + "_out");
+    	//Add the QoS metrics
+    	double reliability = 1.0;
+    	if( failure )
+    		reliability = 0.0;
+    	double time = randDouble(this.rand, this.minTime, this.maxTime);
+    	double cost = randDouble(this.rand, this.minCost, this.maxCost);
+    	QoSMetrics qosMetrics = new QoSMetrics(time, cost, reliability);
+    	this.qosHT.put(t.getText(), qosMetrics);
+    	//System.out.println(t.getText() + " used: " + listAsString(inputs) + " generated: " + t.getText() + "_out");
     	//Generate used edges
     	for(int i = 0; i < inputs.size(); i++)
     		this.digraph.addEdge(t.getText(), inputs.get(i));
@@ -135,7 +181,7 @@ public class ASMSimpleSimulator {
     		this.digraph.addEdge(t.getText() + "_out", t.getText());
     	else {
     		this.failed.put(t.getText() + "_out", true);
-    		System.out.println(t.getText() + "_out: FAILED");
+    		//System.out.println(t.getText() + "_out: FAILED");
     	}
     	return list;
     }
@@ -180,12 +226,37 @@ public class ASMSimpleSimulator {
     }
     
     
+    public void addAsmInputs() {
+    	for(int i = 0; i < this.asmInProcesses.size(); i++) {
+    		int nInputs = this.asmInProcessesNumInputs.get(this.asmInProcesses.get(i));
+    		for(int j = 1; j <= nInputs; j++) {
+    			this.digraph.addEdge(this.asmInProcesses.get(i), this.asmInProcesses.get(i) + "_in" + j);
+    		}
+    	}
+    }
+    
+    
     public static double randDouble(Random rand, double min, double max) {
 	    double randomNum = min + (max - min) * rand.nextDouble();
 	    return randomNum;
 	}
+    
+    
+    public static int randInt(Random rand, int min, int max) {
+	    int randomNum = rand.nextInt((max - min) + 1) + min;
+	    return randomNum;
+	}
 	
-	
+    
+    public void createAsmInProcessesNumInputs(int minInputs, int maxInputs) {
+    	this.asmInProcessesNumInputs = new Hashtable<String, Integer>();
+    	for(int i = 0; i < this.asmInProcesses.size(); i++) {
+    		int nInputs = randInt(this.rand, minInputs, maxInputs);
+    		this.asmInProcessesNumInputs.put(this.asmInProcesses.get(i), nInputs);
+    	}
+    }
+
+    
 }
 
 

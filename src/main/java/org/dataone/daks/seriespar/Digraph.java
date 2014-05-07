@@ -409,10 +409,12 @@ public class Digraph {
     /**
      * Output digraph as a Graphviz dot file.
      */
-    public void toDotFile(String filename) {
+    public void toDotFile(String filename, boolean btRankdir) {
         StringBuilder s = new StringBuilder();
         String NEWLINE = System.getProperty("line.separator");
         s.append("digraph dag {" + NEWLINE);
+        if( btRankdir )
+        	s.append("rankdir = BT;" + NEWLINE);
         for ( int i = 0; i < this.adj.size(); i++ ) {
             String v1 = this.posIndex.inverse().get(i);
             Iterator<String> it = this.getAdjListAt(i).iterator();

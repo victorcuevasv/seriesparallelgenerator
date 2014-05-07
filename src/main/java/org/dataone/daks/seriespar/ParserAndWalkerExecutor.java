@@ -57,14 +57,15 @@ public class ParserAndWalkerExecutor {
 			ASTtoDigraph astToDigraph = walker.astToDigraph;
 			Digraph graph = astToDigraph.getDigraph();
 			System.out.println(graph.toString());
-			graph.toDotFile("out.dot");
+			graph.toDotFile("out.dot", false);
 			WFComponentQoS topComponent = walker.topComponent;
 			System.out.println(topComponent.getQoSMetrics());
 			
 			ASMSimpleSimulator simulator = new ASMSimpleSimulator();
 			simulator.init(inputStr);
+			simulator.run();
 			
-			simulator.getDigraph().toDotFile("trace.dot");
+			simulator.getDigraph().toDotFile("trace.dot", true);
 			
 		}
         catch (RecognitionException e) {
