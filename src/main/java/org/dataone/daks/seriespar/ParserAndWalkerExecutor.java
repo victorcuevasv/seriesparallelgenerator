@@ -65,7 +65,7 @@ public class ParserAndWalkerExecutor {
 			simulator.init(inputStr);
 			simulator.run();
 			
-			simulator.getDigraph().toDotFile("trace.dot", true);
+			simulator.getTraceDigraph().toDotFile("trace.dot", true);
 			
 		}
         catch (RecognitionException e) {

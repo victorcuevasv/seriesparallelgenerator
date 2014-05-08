@@ -434,6 +434,19 @@ public class Digraph {
 		}
     }
     
+    
+    /**
+     * Get a list of the vertices in the graph.
+     */
+    public List<String> getVertices() {
+        List<String> list = new ArrayList<String>();
+        for ( int i = 0; i < this.adj.size(); i++ ) {
+            String v = this.posIndex.inverse().get(i);
+            list.add(v);
+        }
+        return list;
+    }
+    
 
    /**
      * Test client.

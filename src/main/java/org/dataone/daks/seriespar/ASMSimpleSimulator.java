@@ -94,7 +94,7 @@ public class ASMSimpleSimulator {
     }
     
     
-    public Digraph getDigraph() {
+    public Digraph getTraceDigraph() {
     	return this.digraph;
     }
     
