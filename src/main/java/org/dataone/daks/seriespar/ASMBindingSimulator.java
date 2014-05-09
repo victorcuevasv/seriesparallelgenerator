@@ -67,10 +67,6 @@ public class ASMBindingSimulator {
         if ( parser.getNumberOfSyntaxErrors() == 0 ) {
             this.root = (Tree)result.getTree();
             //System.out.println("tree: " + root.toStringTree());
-            this.failed = new Hashtable<String, Boolean>();
-            this.digraph = new Digraph();
-            this.qosHT = new Hashtable<String, QoSMetrics>();
-            this.asmInProcesses = new ArrayList<String>();
             List<String> activities = this.generateActivitiesList(inputStr);
             this.bindingHT = this.generateBindingHT(activities);
         }
@@ -78,6 +74,10 @@ public class ASMBindingSimulator {
     
     
     public void run() {
+    	this.failed = new Hashtable<String, Boolean>();
+        this.digraph = new Digraph();
+        this.qosHT = new Hashtable<String, QoSMetrics>();
+        this.asmInProcesses = new ArrayList<String>();
     	List<String> outputs = this.exec(root.getChild(0).getChild(0), new ArrayList<String>());
     	if( this.asmInProcessesNumInputs == null )
     		this.createAsmInProcessesNumInputs(1, 2);
@@ -94,6 +94,11 @@ public class ASMBindingSimulator {
     
     public Hashtable<String, QoSMetrics> getQoSHT() {
     	return this.qosHT;
+    }
+    
+    
+    public Hashtable<String, String> getBindingHT() {
+    	return this.bindingHT;
     }
     
     

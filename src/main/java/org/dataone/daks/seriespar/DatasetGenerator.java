@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Random;
 import java.util.StringTokenizer;
+import java.util.Hashtable;
 
 import org.json.*;
 import org.antlr.runtime.*;
@@ -20,6 +21,7 @@ public class DatasetGenerator {
 	//Maximum number of traces to generate for a given workflow
 	private static final int maxTraces = 5;
 	private Random rand;
+	private MinMaxRandomServiceCatalog serviceCatalog;
 	
 	
 	public DatasetGenerator() {
@@ -28,17 +30,20 @@ public class DatasetGenerator {
 	
 	
 	public static void main(String args[]) {
-		if( args.length != 2 ) {
-			System.out.println("Usage: java org.dataone.daks.seriespar.DatasetGenerator <wf names file> <folder prefix>");
+		if( args.length != 3 ) {
+			System.out.println("Usage: java org.dataone.daks.seriespar.DatasetGenerator <wf names file> <folder prefix> <service catalog file>");
 			System.exit(0);
 		}
 		DatasetGenerator generator = new DatasetGenerator();
-		generator.generateDataset(args[0], args[1]);
+		generator.generateDataset(args[0], args[1], args[2]);
 	}
 	
 	
-	public void generateDataset(String wfNamesFile, String folderPrefix) {
-    	//Read the file with the workflow names
+	public void generateDataset(String wfNamesFile, String folderPrefix, String catalogFile) {
+    	//Read the service catalog
+		this.serviceCatalog = new MinMaxRandomServiceCatalog();
+		this.serviceCatalog.initializeFromJSONFile(catalogFile);
+		//Read the file with the workflow names
 		String wfNamesText = readFile(wfNamesFile);
 		//System.out.println(wfNamesText);
 		//Create a list with the workflow names
@@ -91,11 +96,13 @@ public class DatasetGenerator {
 			JSONObject wfGraphObj = this.generateWFJSON(wfGraph);
 			this.saveJSONObjAsFile(wfGraphObj, wfName + ".json");
 			//Run the simulator with the ASM tree
-			ASMSimpleSimulator simulator = new ASMSimpleSimulator();
+			ASMBindingSimulator simulator = new ASMBindingSimulator(this.serviceCatalog);
 			simulator.init(asmText);
 			simulator.run();
 			simulator.getTraceDigraph().toDotFile(wfName + "trace1.dot", true);
-			JSONObject traceGraphObj = this.generateWFJSON(simulator.getTraceDigraph());
+			Hashtable<String, String> bindingHT = simulator.getBindingHT();
+			Hashtable<String, QoSMetrics> qosHT = simulator.getQoSHT();
+			JSONObject traceGraphObj = this.generateTraceJSON(simulator.getTraceDigraph(), bindingHT, qosHT);
 			this.saveJSONObjAsFile(traceGraphObj, wfName + "trace1.json");
 		}
         catch (RecognitionException e) {
@@ -123,6 +130,51 @@ public class DatasetGenerator {
 					edgeObj.put("endNodeId", node2Id);
 					edgesArray.put(edgeObj);
 				}
+			}
+			graphObj.put("nodes", nodesArray);
+			graphObj.put("edges", edgesArray);
+		}
+		catch (JSONException e) {
+			e.printStackTrace();
+		}
+		return graphObj;
+	}
+	
+	
+	private JSONObject generateTraceJSON(Digraph graph, Hashtable<String, String> bindingHT,
+			Hashtable<String, QoSMetrics> qosHT) {
+		List<String> nodes = graph.getVertices();
+		JSONArray nodesArray = new JSONArray();
+		JSONArray edgesArray = new JSONArray();
+		JSONObject graphObj = new JSONObject();
+		boolean node1IdisData = false;
+		try {
+			for(String node1Id: nodes) {
+				if( node1Id.contains("_") )
+					node1IdisData = true;
+				JSONObject nodeObj = new JSONObject();
+				nodeObj.put("nodeId", node1Id);
+				if( !node1IdisData ) {
+					String service = bindingHT.get(node1Id);
+					nodeObj.put("service", service);
+					QoSMetrics qosMetrics = qosHT.get(node1Id);
+					nodeObj.put("time", qosMetrics.getTime());
+					nodeObj.put("cost", qosMetrics.getCost());
+					nodeObj.put("reliability", qosMetrics.getReliability());
+				}
+				nodesArray.put(nodeObj);
+				List<String> adjList = graph.getAdjList(node1Id);
+				for( String node2Id: adjList ) {
+					JSONObject edgeObj = new JSONObject();
+					edgeObj.put("startNodeId", node1Id);
+					if( node1IdisData )
+						edgeObj.put("edgeLabel", "wasGenBy");
+					else
+						edgeObj.put("edgeLabel", "used");
+					edgeObj.put("endNodeId", node2Id);
+					edgesArray.put(edgeObj);
+				}
+				node1IdisData = false;
 			}
 			graphObj.put("nodes", nodesArray);
 			graphObj.put("edges", edgesArray);
