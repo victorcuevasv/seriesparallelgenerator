@@ -19,7 +19,7 @@ public class DatasetGenerator {
 	
 	
 	//Maximum number of traces to generate for a given workflow
-	private static final int maxTraces = 5;
+	private static final int MAXTRACES = 5;
 	private Random rand;
 	private MinMaxRandomServiceCatalog serviceCatalog;
 	
@@ -92,23 +92,26 @@ public class DatasetGenerator {
 			Digraph wfGraph = astToDigraph.getDigraph();
 			//System.out.println(graph.toString());
 			//Generate the workflow graph files
-			wfGraph.toDotFile(wfName + ".dot", false);
+			wfGraph.toDotFile(folderPrefix + "/" + wfName + ".dot", false);
 			JSONObject wfGraphObj = this.generateWFJSON(wfGraph);
-			this.saveJSONObjAsFile(wfGraphObj, wfName + ".json");
-			//Run the simulator with the ASM tree
-			ASMBindingSimulator simulator = new ASMBindingSimulator(this.serviceCatalog);
-			simulator.init(asmText);
-			simulator.run();
-			simulator.getTraceDigraph().toDotFile(wfName + "trace1.dot", true);
-			Hashtable<String, String> bindingHT = simulator.getBindingHT();
-			Hashtable<String, QoSMetrics> qosHT = simulator.getQoSHT();
-			JSONObject traceGraphObj = this.generateTraceJSON(simulator.getTraceDigraph(), bindingHT, qosHT);
-			this.saveJSONObjAsFile(traceGraphObj, wfName + "trace1.json");
+			this.saveJSONObjAsFile(wfGraphObj, folderPrefix + "/" + wfName + ".json");
+			//Generate the traces
+			int nTraces = randInt(1, MAXTRACES);
+			for(int i = 1; i <= nTraces; i++) {
+				//Run the simulator with the ASM tree
+				ASMBindingSimulator simulator = new ASMBindingSimulator(this.serviceCatalog);
+				simulator.init(asmText);
+				simulator.run();
+				simulator.getTraceDigraph().toDotFile(folderPrefix + "/" + wfName + "trace" + i + ".dot", true);
+				Hashtable<String, String> bindingHT = simulator.getBindingHT();
+				Hashtable<String, QoSMetrics> qosHT = simulator.getQoSHT();
+				JSONObject traceGraphObj = this.generateTraceJSON(simulator.getTraceDigraph(), bindingHT, qosHT);
+				this.saveJSONObjAsFile(traceGraphObj, folderPrefix + "/" + wfName + "trace" + i + ".json");
+			}
 		}
         catch (RecognitionException e) {
 			e.printStackTrace();
 		}
-        System.exit(0);
 	}
 	
 	
